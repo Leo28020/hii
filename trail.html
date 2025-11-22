@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Birthday Journey</title>
+    <!-- Load Tailwind CSS from CDN - This must load successfully for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font setup */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap');
+        
+        :root {
+            --primary: #a78bfa; /* Violet 400 */
+            --secondary: #8b5cf6; /* Violet 500 */
+            --background: #1e1b4b; /* Indigo 900 */
+            --text-light: #f3e8ff; /* Violet 100 */
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Deep Purple/Indigo Gradient for the background */
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto; 
+        }
+
+        /* Style for the translucent card wrapper */
+        .glass-card-wrapper {
+            background-color: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+            width: 100%;
+            max-width: 44rem; 
+        }
+
+        /* -------------------------------------- */
+        /* CSS-ONLY PAGE TRANSITION LOGIC (Robust Initial Display) */
+        /* -------------------------------------- */
+
+        /* 1. Hide all content sections by default */
+        .content-section {
+            display: none;
+            min-height: 50vh; 
+            color: var(--text-light);
+            animation: fadeIn 0.6s ease-out;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* 2. Make Page 1 visible by default (This is the primary fix for the blank page issue) */
+        #page-1-wish {
+            display: flex;
+        }
+
+        /* 3. Show the specific content section whose ID matches the URL hash */
+        .content-section:target {
+            display: flex;
+        }
+
+        /* 4. If ANY page is targeted (i.e., we've navigated away), Page 1 must be hidden again. */
+        #page-2-images:target ~ #page-1-wish,
+        #page-3-photo:target ~ #page-1-wish,
+        #page-4-video:target ~ #page-1-wish {
+            display: none;
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .nav-button {
+            transition: all 0.2s ease;
+            text-decoration: none; 
+        }
+
+        .nav-button:hover {
+            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* CONFETTI (CSS Only) */
+        .confetti {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1; 
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-light);
+            opacity: 0.8;
+            animation: fall linear infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotateZ(0deg); opacity: 0.5; }
+            100% { transform: translateY(100vh) rotateZ(360deg); opacity: 0; }
+        }
+
+        .confetti-piece:nth-child(1) { left: 10%; animation-delay: 0s; background-color: #a78bfa; }
+        .confetti-piece:nth-child(2) { left: 20%; animation-delay: 2s; background-color: #fde68a; }
+        .confetti-piece:nth-child(3) { left: 30%; animation-delay: 4s; background-color: #fb7185; }
+        .confetti-piece:nth-child(4) { left: 40%; animation-delay: 1s; background-color: #a78bfa; }
+        .confetti-piece:nth-child(5) { left: 50%; animation-delay: 3s; background-color: #fca5a5; }
+        .confetti-piece:nth-child(6) { left: 60%; animation-delay: 5s; background-color: #fde68a; }
+        .confetti-piece:nth-child(7) { left: 70%; animation-delay: 1.5s; background-color: #fb7185; }
+        .confetti-piece:nth-child(8) { left: 80%; animation-delay: 3.5s; background-color: #a78bfa; }
+        .confetti-piece:nth-child(9) { left: 90%; animation-delay: 5.5s; background-color: #fde68a; }
+
+        /* Helper to display the page number in the header based on the target */
+        #header-title::after {
+            content: "Page 1 of 4";
+        }
+        #page-2-images:target ~ div > header > p::after {
+            content: "Page 2 of 4";
+        }
+        #page-3-photo:target ~ div > header > p::after {
+            content: "Page 3 of 4";
+        }
+        #page-4-video:target ~ div > header > p::after {
+            content: "Page 4 of 4";
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- 
+        JAVASCRIPT FOR INITIAL LOAD AND MUSIC CONTROL
+        The CSS now ensures content visibility, but this JS handles the URL hash and ensures music can be played.
+    -->
+    <script>
+        // Check if the URL hash is empty on load and set the first page's hash
+        if (window.location.hash === '') {
+            window.location.replace('#page-1-wish'); 
+        }
+        
+        // Function to start the music on user interaction
+        function startMusic() {
+            const music = document.getElementById('background-music');
+            if (music) {
+                music.play().then(() => {
+                    // Hide the music button after successful play
+                    const btn = document.getElementById('music-play-button');
+                    if (btn) btn.style.display = 'none';
+                }).catch(error => {
+                    console.warn("Autoplay failed or was blocked. User interaction required.", error);
+                    // Keep button visible if play failed
+                });
+            }
+        }
+    </script>
+    
+    <!-- 
+        *** BACKGROUND MUSIC PLAYER ***
+        The 'autoplay' attribute is unreliable, so the music will be started by the JS function `startMusic` linked to the button below.
+    -->
+    <audio id="background-music" loop>
+        <source src="https://storage.googleapis.com/gweb-dev-storage/experiments/audio/happy-birthday.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Confetti Layer -->
+    <div class="confetti">
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+    </div>
+    
+    <!-- Main Content Container (Now Translucent/Glass Effect) -->
+    <div class="glass-card-wrapper mx-auto rounded-3xl overflow-hidden">
+        
+        <!-- Header Section -->
+        <header class="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-6 sm:p-8 text-center rounded-t-3xl">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-snug">
+                🎁 A Guided Birthday Surprise 🎂
+            </h1>
+            <!-- The content of this <p> is managed purely by CSS :target rules -->
+            <p id="header-title" class="mt-2 text-xl font-medium text-violet-200 transition duration-300">
+                <!-- Content injected by CSS ::after -->
+            </p>
+        </header>
+
+        <!-- Content Area -->
+        <main class="p-4 sm:p-8">
+            
+            <!-- 1. Extraordinary Birthday Wish (Page 1) -->
+            <section id="page-1-wish" class="content-section">
+                <div class="flex-grow space-y-6 text-center">
+                    <h2 class="text-5xl font-extrabold text-white mb-6" style="font-family: 'Dancing Script', cursive;">
+                        A Special Message for You
+                    </h2>
+                    <p class="text-violet-100 text-2xl leading-relaxed italic p-6 bg-white/10 rounded-xl border-2 border-violet-400 shadow-xl">
+                        My dear friend, this isn't just a birthday wish; it's a declaration. A declaration that your existence makes the world a thousand times brighter. May the next chapter of your story be filled with moments that take your breath away, adventures that define you, and a happiness so profound it overflows. You are truly one of a kind.
+                    </p>
+                    <p class="text-violet-300 text-lg font-semibold pt-4">
+                        Click 'Next' to continue this journey...
+                    </p>
+                </div>
+                <!-- Navigation and Music Button -->
+                <div class="flex justify-between p-4 border-t border-white/20 mt-6">
+                    <!-- Music Play Button (NEW) -->
+                    <button id="music-play-button" onclick="startMusic()" class="nav-button bg-pink-500 text-white py-3 px-4 rounded-full font-bold text-lg shadow-lg hover:bg-pink-600 focus:outline-none focus:ring-4 focus:ring-pink-300">
+                        ▶️ Play Music
+                    </button>
+                    <!-- Next Button -->
+                    <a href="#page-2-images" class="nav-button bg-violet-500 text-white py-3 px-8 rounded-full font-bold text-xl shadow-lg hover:bg-violet-600 focus:outline-none focus:ring-4 focus:ring-violet-300">
+                        Next Chapter &rarr;
+                    </a>
+                </div>
+            </section>
+            
+            <!-- 2. Images with Happy Statements (Page 2) -->
+            <section id="page-2-images" class="content-section">
+                <div class="flex-grow space-y-6">
+                    <h2 class="text-3xl font-extrabold text-white text-center mb-6">
+                        🖼️ Moments That Define Happiness 
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- Image Card 1 -->
+                        <div class="bg-white/10 rounded-xl overflow-hidden border border-violet-400 p-3 shadow-lg">
+                            <img src="https://placehold.co/400x300/F472B6/FFFFFF/png?text=Laughter" alt="Happy statement image 1" class="w-full h-auto rounded-lg mb-3" onerror="this.onerror=null; this.src='https://placehold.co/400x300/F472B6/FFFFFF/png?text=Photo+1';" />
+                            <p class="text-center text-lg font-medium text-violet-300">"Your smile is contagious."</p>
+                        </div>
+                        <!-- Image Card 2 -->
+                        <div class="bg-white/10 rounded-xl overflow-hidden border border-violet-400 p-3 shadow-lg">
+                            <img src="https://placehold.co/400x300/E879F9/FFFFFF/png?text=Adventure" alt="Happy statement image 2" class="w-full h-auto rounded-lg mb-3" onerror="this.onerror=null; this.src='https://placehold.co/400x300/E879F9/FFFFFF/png?text=Photo+2';" />
+                            <p class="text-center text-lg font-medium text-violet-300">"We love your adventurous spirit!"</p>
+                        </div>
+                        <!-- Image Card 3 -->
+                        <div class="bg-white/10 rounded-xl overflow-hidden border border-violet-400 p-3 shadow-lg">
+                            <img src="https://placehold.co/400x300/FB7185/FFFFFF/png?text=Kindness" alt="Happy statement image 3" class="w-full h-auto rounded-lg mb-3" onerror="this.onerror=null; this.src='https://placehold.co/400x300/FB7185/FFFFFF/png?text=Photo+3';" />
+                            <p class="text-center text-lg font-medium text-violet-300">"Your kindness inspires everyone."</p>
+                        </div>
+                        <!-- Image Card 4 -->
+                        <div class="bg-white/10 rounded-xl overflow-hidden border border-violet-400 p-3 shadow-lg">
+                            <img src="https://placehold.co/400x300/A78BFA/FFFFFF/png?text=Memories" alt="Happy statement image 4" class="w-full h-auto rounded-lg mb-3" onerror="this.onerror=null; this.src='https://placehold.co/400x300/A78BFA/FFFFFF/png?text=Photo+4';" />
+                            <p class="text-center text-lg font-medium text-violet-300">"So many amazing memories together."</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Navigation - Changed from <button> to <a href> -->
+                <div class="flex justify-between p-4 border-t border-white/20 mt-6">
+                    <a href="#page-1-wish" class="nav-button bg-gray-500 text-white py-2 px-6 rounded-full font-semibold hover:bg-gray-600 focus:outline-none">
+                        &larr; Back
+                    </a>
+                    <a href="#page-3-photo" class="nav-button bg-violet-500 text-white py-2 px-6 rounded-full font-bold shadow-md hover:bg-violet-600 focus:outline-none focus:ring-4 focus:ring-violet-300">
+                        Next Page &rarr;
+                    </a>
+                </div>
+            </section>
+
+            <!-- 3. Full One Photo (Page 3) -->
+            <section id="page-3-photo" class="content-section">
+                <div class="flex-grow space-y-6 text-center">
+                    <h2 class="text-3xl font-extrabold text-white mb-6">
+                        🌟 The Golden Moment 
+                    </h2>
+                    
+                    <div class="bg-white/10 p-6 rounded-xl shadow-2xl border border-violet-400">
+                        <img 
+                            src="https://placehold.co/800x600/FDBA74/8A2BE2/png?text=YOUR+BEST+PHOTO+HERE" 
+                            alt="The main focus photo" 
+                            class="w-full h-auto rounded-xl border-4 border-violet-500 object-cover mx-auto"
+                            onerror="this.onerror=null; this.src='https://placehold.co/800x600/FDBA74/8A2BE2/png?text=Photo+Load+Error';"
+                        >
+                        <p class="mt-4 text-xl font-semibold text-violet-300 italic">
+                            A picture is worth a thousand wishes.
+                        </p>
+                    </div>
+                </div>
+                <!-- Navigation - Changed from <button> to <a href> -->
+                <div class="flex justify-between p-4 border-t border-white/20 mt-6">
+                    <a href="#page-2-images" class="nav-button bg-gray-500 text-white py-2 px-6 rounded-full font-semibold hover:bg-gray-600 focus:outline-none">
+                        &larr; Back
+                    </a>
+                    <a href="#page-4-video" class="nav-button bg-violet-500 text-white py-2 px-6 rounded-full font-bold shadow-md hover:bg-violet-600 focus:outline-none focus:ring-4 focus:ring-violet-300">
+                        Final Surprise &rarr;
+                    </a>
+                </div>
+            </section>
+            
+            <!-- 4. Video Page (Page 4) -->
+            <section id="page-4-video" class="content-section">
+                <div class="flex-grow space-y-6 text-center">
+                    <h2 class="text-3xl font-extrabold text-white mb-6">
+                        🎬 The Final Message 
+                    </h2>
+                    
+                    <div class="bg-white/10 rounded-xl shadow-lg p-3 border border-violet-400">
+                        <p class="text-xl font-semibold text-violet-300 mb-2">A Personal Video Tribute</p>
+                        <div class="aspect-video w-full overflow-hidden rounded-lg">
+                            
+                            <!-- 
+                                *** IMPORTANT INSTRUCTIONS FOR VIDEO ***
+                                1. Upload your video file (e.g., my_video.mp4) to the same folder as index.html on GitHub.
+                                2. REPLACE the 'src' value below with your video's file name. 
+                                   Example: src="my_video.mp4"
+                            -->
+                            <video controls class="w-full h-full rounded-lg" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Loading...">
+                                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                <p class="text-red-500 p-4">Your browser does not support the video tag. Please try a different browser.</p>
+                            </video>
+                        </div>
+                        <p class="mt-4 text-violet-300 text-lg">
+                            We hope you enjoyed this little journey! Happy Birthday!
+                        </p>
+                    </div>
+                </div>
+                <!-- Navigation - Changed from <button> to <a href> -->
+                <div class="flex justify-start p-4 border-t border-white/20 mt-6">
+                    <a href="#page-3-photo" class="nav-button bg-gray-500 text-white py-2 px-6 rounded-full font-semibold hover:bg-gray-600 focus:outline-none">
+                        &larr; Back
+                    </a>
+                </div>
+            </section>
+            
+        </main>
+        
+        <!-- Footer -->
+        <footer class="p-4 bg-black/10 text-center text-sm text-violet-300 border-t border-white/20 rounded-b-3xl">
+            <p>Made with all our love. ❤️</p>
+        </footer>
+    </div>
+</body>
+</html>
